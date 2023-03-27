@@ -15,27 +15,32 @@ public class MainClass
         {
             int n = 10 * i;
             var matrix = GenerateMatrix(n);
-            int[,] matrixCopy = matrix.Clone() as int[,];
-            int[,] matrixCopy2 = matrix.Clone() as int[,];
+            int[,] matrix1 = matrix.Clone() as int[,];
+            int[,] matrix2 = matrix.Clone() as int[,];
             //PrintMatrix(matrixCopy);
 
             var watch = new System.Diagnostics.Stopwatch();
+
             watch.Start();
-            var multipliedMatrix = MultiplyMatrix(matrix);
+            ListOfCyclesNaive = FindCycleNaive(matrix);
+            watch.Stop();
+            Console.Write(n+";"+watch.ElapsedMilliseconds+";"+ListOfCyclesNaive.Count+";");
+
+
+
+            watch.Start();
+            ListOfCyclesDfs = FindCycleDfs(matrix1);
+            watch.Stop();
+            Console.Write(watch.ElapsedMilliseconds+";"+ListOfCyclesDfs.Count + ";");
+
+           
+            watch.Start();
+            var multipliedMatrix = MultiplyMatrix(matrix2);
             ListOfCyclesMultiply = FindCycleMultiply(multipliedMatrix, matrix);
             watch.Stop();
-            //Console.Write(n+";"+watch.ElapsedMilliseconds+";"+ListOfCyclesMultiply.Count+";");
+            Console.WriteLine(";"+watch.ElapsedMilliseconds+";"+ListOfCyclesMultiply.Count+";");
+            
 
-            watch.Start();
-            ListOfCyclesNaive = FindCycleNaive(matrixCopy);
-            watch.Stop();
-            //Console.WriteLine(watch.ElapsedMilliseconds+";"+ListOfCyclesNaive.Count);
-
-
-            ListOfCyclesDfs = FindCycleDfs(matrixCopy2);
-            Console.WriteLine("Naive: " + ListOfCyclesNaive.Count);
-            Console.WriteLine("Dfs: " + ListOfCyclesDfs.Count);
-            Console.WriteLine("Multiply: " + ListOfCyclesMultiply.Count);
         }
 
         //Naive
