@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+//using System.Diagnostics.StopWatch;
 
 public class MainClass
 {
@@ -18,27 +19,30 @@ public class MainClass
             int[,] matrix1 = matrix.Clone() as int[,];
             int[,] matrix2 = matrix.Clone() as int[,];
             //PrintMatrix(matrixCopy);
+            DateTime start = DateTime.Now;
+            DateTime end = DateTime.Now;
+            TimeSpan ts = (end - start);
 
-            var watch = new System.Diagnostics.Stopwatch();
 
-            watch.Start();
+            start = DateTime.Now;
             ListOfCyclesNaive = FindCycleNaive(matrix);
-            watch.Stop();
-            Console.Write(n+";"+watch.ElapsedMilliseconds+";"+ListOfCyclesNaive.Count+";");
+            end = DateTime.Now;
+            ts = (end - start);
+            Console.Write(n+";"+ts.Milliseconds+";");
 
 
-
-            watch.Start();
+            start = DateTime.Now;
             ListOfCyclesDfs = FindCycleDfs(matrix1);
-            watch.Stop();
-            Console.Write(watch.ElapsedMilliseconds+";"+ListOfCyclesDfs.Count + ";");
+            end = DateTime.Now;
+            ts = (end - start);
+            Console.Write(ts.Milliseconds+";");
 
-           
-            watch.Start();
+            start = DateTime.Now;
             var multipliedMatrix = MultiplyMatrix(matrix2);
             ListOfCyclesMultiply = FindCycleMultiply(multipliedMatrix, matrix);
-            watch.Stop();
-            Console.WriteLine(";"+watch.ElapsedMilliseconds+";"+ListOfCyclesMultiply.Count+";");
+            end = DateTime.Now;
+            ts = (end - start);
+            Console.WriteLine(ts.Milliseconds);
             
 
         }
