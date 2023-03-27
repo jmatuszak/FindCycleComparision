@@ -16,40 +16,47 @@ public class MainClass
             int n = 10 * i;
             var matrix = GenerateMatrix(n);
             int[,] matrixCopy = matrix.Clone() as int[,];
-
+            int[,] matrixCopy2 = matrix.Clone() as int[,];
+            //PrintMatrix(matrixCopy);
 
             var watch = new System.Diagnostics.Stopwatch();
             watch.Start();
             var multipliedMatrix = MultiplyMatrix(matrix);
             ListOfCyclesMultiply = FindCycleMultiply(multipliedMatrix, matrix);
             watch.Stop();
-            Console.Write(n+";"+watch.ElapsedMilliseconds+";"+ListOfCyclesMultiply.Count+";");
+            //Console.Write(n+";"+watch.ElapsedMilliseconds+";"+ListOfCyclesMultiply.Count+";");
 
             watch.Start();
             ListOfCyclesNaive = FindCycleNaive(matrixCopy);
             watch.Stop();
-            Console.WriteLine(watch.ElapsedMilliseconds+";"+ListOfCyclesNaive.Count);
+            //Console.WriteLine(watch.ElapsedMilliseconds+";"+ListOfCyclesNaive.Count);
 
+
+            ListOfCyclesDfs = FindCycleDfs(matrixCopy2);
+            Console.WriteLine("Naive: " + ListOfCyclesNaive.Count);
+            Console.WriteLine("Dfs: " + ListOfCyclesDfs.Count);
+            Console.WriteLine("Multiply: " + ListOfCyclesMultiply.Count);
         }
- 
+
         //Naive
         List<List<int>> FindCycleNaive(int[,] matrix)
         {
-            List<List<int>> ListOfCycles= new List<List<int>>();
+            List<List<int>> ListOfCycles = new List<List<int>>();
             var n = matrix.GetLength(0);
             for (int i = 0; i < n; i++)
             {
                 for (int j = 0; j < n; j++)
                 {
+                    if (i == j) break;
                     if (matrix[i, j] != 0)
                     {
                         for (int k = 0; k < n; k++)
                         {
+                            //if (i == k || j == k) break;
                             if (matrix[j, k] != 0 && matrix[k, i] != 0)
                             {
-                                var C3= new List<int>() { i,j,k };
-                                if(!CheckIfContainsCycle(ListOfCycles, C3))
-                                    ListOfCycles.Add(C3);
+                                if (CheckIfContainsCycle(ListOfCycles, i, j, k) == false)
+                                    ListOfCycles.Add(new List<int> { i, j, k });
                             }
                         }
                     }
@@ -58,90 +65,92 @@ public class MainClass
             }
             return ListOfCycles;
         }
-        //Multiply
-        List<List<int>> FindCycleMultiply(int[,] multipliedMatrix, int[,] matrix)
+
+        //DFS
+        List<List<int>> FindCycleDfs(int[,] matrix)
         {
+
             List<List<int>> ListOfCycles = new List<List<int>>();
-            List<int> C3 = new List<int>();
-            int count = 0;
+            //DfsOrder.Add(start);
+            var n = matrix.GetLength(0);
+            for(int start = 0; start < n; start++)
+            {
+                List<int> DfsOrder = new List<int>();
+                Stack<int> DfsStack = new Stack<int>();
+                DfsStack.Push(start);
+                while (DfsStack.Count > 0)
+                {
+                    int v = DfsStack.Pop();
+                    if (!DfsOrder.Contains(v))
+                    {
+                        for (int i = n - 1; i >= 0; i--)
+                        {
+                            if (matrix[v, i] >= 1)
+                            {
+                                DfsStack.Push(i);
+                                for (int j = 0; j < n; j++)
+                                {
+                                    if (matrix[i, j] >= 1 && matrix[j, v] >= 1)
+                                        if (!CheckIfContainsCycle(ListOfCycles, i, j, v))
+                                            ListOfCycles.Add(new List<int> { i, j, v });
+                                }
+                            }
+                        }
+                        DfsOrder.Add(v);
+                    }
+                }
+            }
+
+            return ListOfCycles;
+        }
+
+        //Multiply
+        List<List<int>> FindCycleMultiply(int[,] multipliedMatrix, int[,]matrix)
+{
+            var ListOfCycles = new List<List<int>>();
             var n = matrix.GetLength(0);
             for (int i = 0; i < n; i++)
             {
                 for (int j = 0; j < n; j++)
                 {
-                    for (int k = 0; k < n; k++)
+                    if (i == j) break;
+                    if (multipliedMatrix[i, j] >= 1 || multipliedMatrix[j, i] >= 1)
                     {
-                        if (multipliedMatrix[i, j] >= 1 && multipliedMatrix[j, k] >= 1 && multipliedMatrix[k, i] >= 1 &&
-                            i != k && k != j && i != j &&
-                            matrix[i, j] == 1 && matrix[j, k] == 1 && matrix[k, i] == 1)
+                        for (int k = 0; k < n; k++)
                         {
-                            count++;
-                            C3 = new List<int>() { i, j, k };
-                            if (!CheckIfContainsCycle(ListOfCycles, C3))
+                            if (i == k || j == k) break;
+                            if ((matrix[i, k] >= 1 && matrix[k, j] == 1 && matrix[j, i] >= 1)|| 
+                                (matrix[k, i] >= 1 && matrix[j, k] == 1 && matrix[i, j] >= 1))
                             {
-                                ListOfCycles.Add(C3);
+
+                                if (!CheckIfContainsCycle(ListOfCycles, i, j, k))
+                                    ListOfCycles.Add(new List<int> { i, j, k });
                             }
                         }
                     }
+
                 }
             }
             return ListOfCycles;
         }
 
-/*
-        //Dfs
-        List<List<int>> FindCycleDfs(int[,] matrix, int v, int w, List<int> Stack, List<int> Visited, List<List<int>> ListOfCycles)
+
+        bool CheckIfContainsCycle(List<List<int>> ListOfCycles, int i, int j, int k)
         {
-            var C3 = new List<int>();
-
-            //oznaczamy bieżący wierzchołek jako odwiedzony
-            if (!Visited.Contains(w)) Visited.Add(w);
-            //na stosie umieszczamy bieżący wierzchołek
-            Stack.Add(w);
-            //przeglądamy kolejnych sąsiadów wierzchołka w
-            for (int i = 0; i < matrix.GetLength(1); i++)
+            if (ListOfCycles.Count == 0) return false;
+            else
             {
-                if (matrix[i, w] >= 1 && i != w)
+                for (int c = 0; c < ListOfCycles.Count; c++)
                 {
-                    //znaleźliśmy cykl>2, kończymy rekurencję
-                    if (i == v && Visited.Count() > 2)
+                    if (ListOfCycles[c].Contains(i) &&
+                        ListOfCycles[c].Contains(j) &&
+                        ListOfCycles[c].Contains(k))
                     {
-                        C3 = new List<int>() { i, v, w };
-                        if (!CheckIfContainsCycle(ListOfCycles, C3) && i != w && i != v && v != w)
-                        {
-                            ListOfCycles.Add(C3);
-                            return ListOfCycles;
-                        }
-                    }
-                    if (!Visited.Contains(i))
-                    {
-
-                        if (FindCycleDfs(matrix, v, i, Stack, Visited, ListOfCycles).Count >= ListOfCycles.Count)
-                        {
-                            ListOfCycles = FindCycleDfs(matrix, v, i, Stack, Visited, ListOfCycles);
-                            C3 = new List<int>() { i, v, w };
-                            if (!CheckIfContainsCycle(ListOfCycles, C3) && i != w && i != v && v != w)
-                            {
-                                ListOfCycles.Add(C3);
-                                return ListOfCycles;
-                            }
-                        }
+                        return true;
                     }
                 }
-                Stack.Remove(Stack.Count - 1);
+                return false;
             }
-            return ListOfCycles;
-        }*/
-        bool CheckIfContainsCycle(List<List<int>> ListOfCycles, List<int> C3)
-        {
-            for (int i = 0; i < ListOfCycles.Count; i++)
-            {
-                if (ListOfCycles.ElementAt(i).Contains(C3.ElementAt(0)) &&
-                    ListOfCycles.ElementAt(i).Contains(C3.ElementAt(1)) &&
-                    ListOfCycles.ElementAt(i).Contains(C3.ElementAt(2)))
-                    return true;
-            }
-            return false;
         }
 
         int[,] ReadMatrix()
@@ -219,6 +228,7 @@ public class MainClass
         }
         int[,] GenerateMatrix(int n)
         {
+            var numbers = new int[4] { 0, 0, 0, 1, };
             var random = new Random();
             int[,] matrix = new int[n, n];
             for (int i = 0; i < n; i++)
@@ -228,7 +238,7 @@ public class MainClass
                     if (i == j) matrix[i, j] = 0;
                     else
                     {
-                        matrix[i, j] = random.Next(0, 2);
+                        matrix[i, j] = numbers[random.Next(0, 4)];
                     }
                 }
             }
